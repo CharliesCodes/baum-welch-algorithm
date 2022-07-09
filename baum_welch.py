@@ -1,31 +1,8 @@
-import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from pandas.plotting import table
-
-# States
-# # V = data['Visible'].values
-
-""" Vorgaben
-    HMM als class
-
-    -------------
-    def set_states()
-    def a_matrix()
-    def b_matrix()
-    sef sequenz_output()
-    ------------->         INPUT
-
-    def forward()
-        -> svg in jedem Schritt erzeugen
-        aufruf: next? -> nächster forward Schritt
-
-    def backward()
-        siehe next
-
-    baum-welch()
-        ~ so lala
-"""
+import dataframe_image as dfi
 
 
 """SVG VORLAGE
@@ -59,6 +36,10 @@ class HiddenMarkovModel:
         self.alpha = np.zeros((len(self.transitions), len(self.output)))
         self.beta = np.zeros((len(self.transitions), len(self.output)))
 
+        self.fill_a_matrix()
+        self.fill_b_matrix()
+        self.sequence_output()
+
     def fill_a_matrix(self):
         # Transition Probabilities
         self.a_matrix = np.array([
@@ -70,21 +51,22 @@ class HiddenMarkovModel:
         # Emission Probabilities
         self.b_matrix = np.array([
             [1, 0, 0, 0, 0],
-            [0, 0.25, 0.5, 0.125, 0.125],
-            [0, 0.5, 0.25, 0.125, 0.125]])
+            [0, 1/3, 1/3, 1/6, 1/6],
+            [0, 1/6, 1/3, 1/6, 1/3]])
         self.b_matrix = pd.DataFrame(self.b_matrix, columns=self.states)
 
     def sequence_output(self):
-        self.output = ",ATTGA,"
+        self.output = ",CGG,"
 
     def forward(self):
+        self.alpha = np.zeros((len(self.transitions), len(self.output)))
         self.alpha[0][0] = 1
         # start at second row (first is initial), start at index 1 because the first row was skipped
         for row_index, row in enumerate(self.alpha.T[1:], 1):
             for cell_index, cell in enumerate(row):
                 #* Idea: sum(Last alpha row * fitting A Row) * cell from B
-                last_alpha_row = self.alpha.T[row_index-1]
-                a_matrix_row = self.a_matrix.T[cell_index]
+                last_alpha_row = np.copy(self.alpha.T[row_index-1])
+                a_matrix_row = np.copy(self.a_matrix.T[cell_index])
                 matrix_multiply_result_sum = np.dot(last_alpha_row, a_matrix_row)
 
                 current_nucleo = self.output[row_index]
@@ -92,53 +74,93 @@ class HiddenMarkovModel:
                 # 4 ndigits
                 cell_result = round(matrix_multiply_result_sum * nucleo_probability, 3)
                 self.alpha.T[row_index][cell_index] = cell_result
-                alpha_df = pd.DataFrame(self.alpha, columns=[x for x in self.output])
-                print("\n\nAlpha\n" + f"{alpha_df}")
 
     def backward(self):
-        self.beta = np.copy(self.alpha)
-        print(self.beta)
+        self.beta = np.zeros((len(self.transitions), len(self.output)))
+        self.beta[0][-1] = 1
         # start at second row (first is initial), start at index 2 because the last row was skipped and negative starts at -1,
         # [1::-1] means backward loop to second row
-        for row_index, row in enumerate(self.beta.T[-2:0:-1], 2):
-            print(-row_index, row)
-            print(self.beta.T)
-            for cell_index, cell in enumerate(row[::-1]):
-                print(cell, -cell_index-1)
+        for col_index, col in enumerate(self.beta.T[-2::-1], 2):
+            for row_index, val in enumerate(col):
+
+                a_matrix_col = np.copy(self.a_matrix[row_index])
+
+                next_nucleo = self.output[-col_index+1]
+                b_matrix_col = np.copy(self.b_matrix[next_nucleo].to_numpy())
+                next_beta_column = np.copy(self.beta.T[-col_index+1])
+                #! ERROR SOMEWHERE HERE
+                arrays = [a_matrix_col, next_beta_column, b_matrix_col]
+                matrix_multiply_result_sum = sum(
+                    np.prod(np.vstack(arrays), axis=0))
                 # 4 ndigits
-                # cell_result = round(
-                #     matrix_multiply_result_sum * nucleo_probability, 3)
-                # self.beta.T[-row_index][-cell_index-1] = cell_result
+                cell_result = round(matrix_multiply_result_sum, 3)
+                self.beta.T[-col_index][row_index] = cell_result
+
+    def create_image(self, df):
+        df = pd.DataFrame(df, columns=[x for x in self.output])
+
+        fig, ax = plt.subplots(figsize=(12, 2))  # set size frame
+        ax.xaxis.set_visible(False)  # hide the x axis
+        ax.yaxis.set_visible(False)  # hide the y axis
+        ax.set_frame_on(False)  # no visible frame, uncomment if size is ok
+        tabla = table(ax, df, loc='upper right', colWidths=[
+                    0.17]*len(df.columns))  # where df is your data frame
+        tabla.auto_set_font_size(False)  # Activate set fontsize manually
+        tabla.set_fontsize(12)  # if ++fontsize is necessary ++colWidths
+        tabla.scale(1.2, 1.2)  # change size table
+        plt.savefig('table.png', transparent=True)
+
+    def baum_welch(self):
+        self.forward()
+        self.backward()
+        # print("--------")
+
+        # print(self.beta)
+
+        # def recalculate_a():
+        #     pass
+        # def recalculate_b():
+        #     for row_index, row in self.b_matrix.iloc[1:].iterrows():
+        #         for column_index, value in enumerate(row):
+        #             # find all indexes from output, where current b matrix column name appears
+        #             all_nucleo_indexes = [i for i, ltr in enumerate(
+        #                 self.output) if ltr == self.output[column_index]]
+
+        #             counter = np.dot(
+        #                 self.alpha[row_index][all_nucleo_indexes], self.beta[row_index][all_nucleo_indexes])
+        #             denominator = np.dot(self.alpha[row_index], self.beta[row_index])
+
+        #             if counter != 0 or denominator != 0:
+        #                 result = counter / denominator
+        #             else:
+        #                result = 0
+        #             self.b_matrix[self.b_matrix.columns[column_index]
+        #                           ].iloc[row_index] = result
+
+        # recalculate_a()
+        # recalculate_b()
+
 
     def __repr__(self) -> str:
         a_df = pd.DataFrame(
             self.a_matrix, columns=self.transitions)
         b_df = pd.DataFrame(self.b_matrix, columns=self.states)
         alpha_df = pd.DataFrame(self.alpha, columns=[x for x in self.output])
+        beta_df = pd.DataFrame(self.beta, columns=[x for x in self.output])
+
         rep = "Transition Probabilities - A-Matrix\n" + \
             f"{a_df}\n\n" + "Emission Probabilities - B-Matrix\n" + \
-            f"{b_df}" + "\n\nAlpha\n" + f"{alpha_df}"
+            f"{b_df}" + "\n\nAlpha\n" + f"{alpha_df}" + \
+            f"\nBeta\n" + f"{beta_df}"
         return rep
 
 
-
 hmm = HiddenMarkovModel()
-hmm.fill_a_matrix()
-hmm.fill_b_matrix()
-hmm.sequence_output()
-hmm.forward()
-# hmm.backward()
-
-
-
-# ax = plt.subplot(111, frame_on=False)  # no visible frame
-# ax.xaxis.set_visible(False)  # hide the x axis
-# ax.yaxis.set_visible(False)  # hide the y axis
-
-# test = pd.DataFrame(hmm.alpha, columns=[x for x in hmm.output])
-# table(ax, test)  # where df is your data frame
-
-# plt.savefig('mytable.svg')
-
-
 # print(hmm)
+
+hmm.baum_welch()
+print(hmm)
+# Check if forward and backword worked
+print(hmm.beta[0][0] == round(np.dot(hmm.beta.T[1], hmm.alpha.T[1]),3))
+
+# hmm.create_image(hmm.alpha)
