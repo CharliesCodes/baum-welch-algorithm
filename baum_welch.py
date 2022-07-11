@@ -95,7 +95,7 @@ class HiddenMarkovModel:
                 cell_result = round(matrix_multiply_result_sum, 8)
                 self.beta.T[-col_index][row_index] = cell_result
 
-    def create_image(self, df):
+    def create_image(self, df: pd.DataFrame):
         df = pd.DataFrame(df, columns=[x for x in self.output])
 
         fig, ax = plt.subplots(figsize=(12, 2))  # set size frame
@@ -163,7 +163,7 @@ class HiddenMarkovModel:
 
         loop += 1
 
-    def check(self):
+    def check(self) -> bool:
         # Check if forward and backword worked
         return hmm.beta[0][0] == round(np.dot(hmm.beta.T[1], hmm.alpha.T[1]), 8)
 
