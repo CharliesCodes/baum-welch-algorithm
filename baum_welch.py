@@ -44,15 +44,15 @@ class HiddenMarkovModel:
         # Transition Probabilities
         self.a_matrix = np.array([
             [0, 0.5, 0.5],
-            [0, 0.25, 0.75],
-            [0.5, 0.25, 0.25]])
+            [0.25, 0.5, 0.25],
+            [1/3, 0, 2/3]])
 
     def fill_b_matrix(self):
         # Emission Probabilities
         self.b_matrix = np.array([
             [1, 0, 0, 0, 0],
-            [0, 1/3, 1/3, 1/6, 1/6],
-            [0, 1/6, 1/3, 1/6, 1/3]])
+            [0, 1/8, 1/8, 1/4, 1/2],
+            [0, 1/2, 1/4, 1/8, 1/8]])
         self.b_matrix = pd.DataFrame(self.b_matrix, columns=self.states)
 
     def sequence_output(self):
@@ -72,7 +72,7 @@ class HiddenMarkovModel:
                 current_nucleo = self.output[row_index]
                 nucleo_probability = self.b_matrix[current_nucleo][cell_index]
                 # 4 ndigits
-                cell_result = round(matrix_multiply_result_sum * nucleo_probability, 3)
+                cell_result = round(matrix_multiply_result_sum * nucleo_probability, 8)
                 self.alpha.T[row_index][cell_index] = cell_result
 
     def backward(self):
@@ -92,7 +92,7 @@ class HiddenMarkovModel:
                 matrix_multiply_result_sum = sum(
                     np.prod(np.vstack(arrays), axis=0))
                 # 4 ndigits
-                cell_result = round(matrix_multiply_result_sum, 3)
+                cell_result = round(matrix_multiply_result_sum, 8)
                 self.beta.T[-col_index][row_index] = cell_result
 
     def create_image(self, df):
@@ -110,60 +110,62 @@ class HiddenMarkovModel:
         plt.savefig('table.png', transparent=True)
 
     def baum_welch(self):
-        # last_alpha_result = self.alpha[0][-1]
-        self.forward()
-        # new_alpha_result = self.alpha[0][-1]
-        # if last_alpha_result == new_alpha_result:
-        #     print(f"Calculation stopped - stable Possibility : {round(new_alpha_result,3)}%")
-        #     return
-        self.backward()
+        max_loops = 100
+        loop = 1
+        while loop < max_loops:
+            last_alpha_result = self.alpha[0][-1]
+            self.forward()
+            new_alpha_result = self.alpha[0][-1]
+            if last_alpha_result == new_alpha_result:
+                print(f"Calculation stopped - stable Possibility : {round(new_alpha_result,8)*100}% after {loop} loops!\n")
+                return
+            self.backward()
 
-        def recalculate_a():
-            for row_index, row in enumerate(self.a_matrix):
-                for column_index, value in enumerate(row):
-                    nucleos = self.output[1:]
-                    empty_b_list = []
-                    for n in nucleos:
-                        empty_b_list.append(self.b_matrix[n][column_index])
-                    b_matrix_values = np.array(empty_b_list)
-                    arrays = [b_matrix_values, self.alpha[column_index][:-1], self.beta[column_index][1:]]
-                    print("Alpha: ", self.alpha[column_index][:-1])
-                    print("Beta: ", self.beta[column_index][1:])
-                    print("B-matrix: ", b_matrix_values)
-                    print("A-Matrix: ", self.a_matrix[row_index][column_index])
-                    counter = sum(np.prod(np.vstack(arrays), axis=0) * self.a_matrix[row_index][column_index])
-                    denominator = np.dot(
-                        self.alpha[column_index], self.beta[column_index])
+            def recalculate_a():
+                for row_index, row in enumerate(self.a_matrix):
+                    for column_index, value in enumerate(row):
+                        nucleos = self.output[1:]
+                        empty_b_list = []
+                        for n in nucleos:
+                            empty_b_list.append(self.b_matrix[n][column_index])
+                        b_matrix_values = np.array(empty_b_list)
+                        arrays = [b_matrix_values, np.copy(self.alpha[row_index][:-1]), np.copy(self.beta[column_index][1:])]
 
-                    if (counter != 0) and (denominator != 0):
-                        result = counter / denominator
-                    else:
-                       result = 0
-                    print(f"Zähler:{counter}")
-                    print(f"Nenner: {denominator}")
-                    print("Ergebnis:", result)
-                    print("\n")
-                    self.a_matrix[row_index][column_index] = round(result, 3)
+                        counter = sum(np.prod(np.vstack(arrays), axis=0) * self.a_matrix[row_index][column_index])
+                        denominator = np.dot(
+                            np.copy(self.alpha[row_index][1:]), np.copy(self.beta[row_index][1:]))
 
-        def recalculate_b():
-            for row_index, row in self.b_matrix.iloc[1:].iterrows():
-                for column_index, value in enumerate(row):
-                    # find all indexes from output, where current b matrix column name appears
-                    all_nucleo_indexes = [i for i, ltr in enumerate(
-                        self.output) if ltr == self.b_matrix.columns[column_index]]
+                        if (counter != 0) and (denominator != 0):
+                            result = counter / denominator
+                        else:
+                            result = 0
 
-                    counter = np.dot(
-                        self.alpha[row_index][all_nucleo_indexes], self.beta[row_index][all_nucleo_indexes])
-                    denominator = np.dot(self.alpha[row_index], self.beta[row_index])
-                    if counter != 0 or denominator != 0:
-                        result = counter / denominator
-                    else:
-                       result = 0
-                    self.b_matrix[self.b_matrix.columns[column_index]].iloc[row_index] = round(result,3)
+                        self.a_matrix[row_index][column_index] = round(result, 8)
+
+            def recalculate_b():
+                for row_index, row in self.b_matrix.iloc[1:].iterrows():
+                    for column_index, value in enumerate(row):
+                        # find all indexes from output, where current b matrix column name appears
+                        all_nucleo_indexes = [i for i, ltr in enumerate(
+                            self.output) if ltr == self.b_matrix.columns[column_index]]
+
+                        counter = np.dot(
+                            self.alpha[row_index][all_nucleo_indexes], self.beta[row_index][all_nucleo_indexes])
+                        denominator = np.dot(self.alpha[row_index], self.beta[row_index])
+                        if counter != 0 or denominator != 0:
+                            result = counter / denominator
+                        else:
+                            result = 0
+                        self.b_matrix[self.b_matrix.columns[column_index]].iloc[row_index] = round(result,8)
 
         recalculate_a()
         recalculate_b()
 
+        loop += 1
+
+    def check(self):
+        # Check if forward and backword worked
+        return hmm.beta[0][0] == round(np.dot(hmm.beta.T[1], hmm.alpha.T[1]), 8)
 
     def __repr__(self) -> str:
         a_df = pd.DataFrame(
@@ -182,10 +184,9 @@ class HiddenMarkovModel:
 hmm = HiddenMarkovModel()
 print(hmm)
 
+print("\n\n =========== BAUM-WELCH START ==============\n")
 hmm.baum_welch()
-print("----------------------------------------------\n\n")
 print(hmm)
-# Check if forward and backword worked
-print("\n\n", hmm.beta[0][0] == round(np.dot(hmm.beta.T[1], hmm.alpha.T[1]),3))
+
 
 # hmm.create_image(hmm.alpha)
