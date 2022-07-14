@@ -52,5 +52,24 @@ Die jeweils hellblau dargestellten Zellen geben die errechnete Wahrscheinlichkei
 ![Result Forward](https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/Images/forward.gif)
 
 
+### Startwerte
+
+<img src="https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/Images/Forward/forward_1.png" alt="Startwerte Forward" width="600"/>
+
+### Endwerte
+
+<img src="https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/Images/Forward/forward_9.png" alt="Endwerte Forward" width="600"/>
+
+
 ## Backward
 ![Result backward](https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/Images/backward.gif)
+
+
+### Startwerte
+
+<img src="https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/Images/Backward/backward_1.png" alt="Startwerte Backward" width="600"/>
+
+### Endwerte
+
+<img src="https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/Images/Backward/backward_9.png" alt="Endwerte Backward" width="600"/>
+
