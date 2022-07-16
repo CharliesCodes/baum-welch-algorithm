@@ -76,6 +76,8 @@ class HiddenMarkovModel:
                 self.beta.T[-col_index][row_index] = cell_result
 
     def create_image(self, matrix_name: str, loop: int):
+        import os
+
         WIDTH = 1280
         HEIGHT = 800
 
@@ -175,7 +177,13 @@ class HiddenMarkovModel:
         {texts}
         </svg>
         """
-        with open(f"{matrix_name}_{loop}.svg", "w") as text_file:
+
+        current_dir = os.getcwd()
+        path = f"{current_dir}/images/{matrix_name}"
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        with open(f"{path}/{matrix_name}_{loop}.svg", "w") as text_file:
             text_file.write(svg)
 
     def recalculate_a(self):
