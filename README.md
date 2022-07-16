@@ -49,27 +49,27 @@ Die B-Matrix gibt an, wie wahrscheinlich es ist, die jeweils mögliche Beobachtu
 Die jeweils hellblau dargestellten Zellen geben die errechnete Wahrscheinlichkeit der gesuchten Output-Sequenz an.
 
 ## Forward
-![Result Forward](https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/Images/forward.gif)
+![Result Forward](https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/images/forward.gif)
 
 
 ### Startwerte
 
-<img src="https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/Images/Forward/forward_1.png" alt="Startwerte Forward" width="600"/>
+<img src="https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/images/forward/forward_1.png" alt="Startwerte Forward" width="600"/>
 
 ### Endwerte
 
-<img src="https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/Images/Forward/forward_9.png" alt="Endwerte Forward" width="600"/>
+<img src="https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/images/forward/forward_9.png" alt="Endwerte Forward" width="600"/>
 
 
 ## Backward
-![Result backward](https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/Images/backward.gif)
+![Result backward](https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/images/backward.gif)
 
 
 ### Startwerte
 
-<img src="https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/Images/Backward/backward_1.png" alt="Startwerte Backward" width="600"/>
+<img src="https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/images/backward/backward_1.png" alt="Startwerte Backward" width="600"/>
 
 ### Endwerte
 
-<img src="https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/Images/Backward/backward_9.png" alt="Endwerte Backward" width="600"/>
+<img src="https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/images/backward/backward_9.png" alt="Endwerte Backward" width="600"/>
 
