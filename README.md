@@ -54,11 +54,11 @@ Die jeweils hellblau dargestellten Zellen geben die errechnete Wahrscheinlichkei
 
 ### Startwerte
 
-<img src="https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/images/forward/forward_1.png" alt="Startwerte Forward" width="600"/>
+<img src="https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/images/examples%20png/forward_1.png" alt="Startwerte Forward" width="600"/>
 
 ### Endwerte
 
-<img src="https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/images/forward/forward_9.png" alt="Endwerte Forward" width="600"/>
+<img src="https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/images/examples%20png/forward_10.png" alt="Endwerte Forward" width="600"/>
 
 
 ## Backward
@@ -67,9 +67,9 @@ Die jeweils hellblau dargestellten Zellen geben die errechnete Wahrscheinlichkei
 
 ### Startwerte
 
-<img src="https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/images/backward/backward_1.svg" alt="Startwerte Backward" width="600"/>
+<img src="https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/images/examples%20png/backward_1.png" alt="Startwerte Backward" width="600"/>
 
 ### Endwerte
 
-<img src="https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/images/backward/backward_9.png" alt="Endwerte Backward" width="600"/>
+<img src="https://github.com/CharliesCodes/baum-welch-algorithm/blob/main/images/examples%20png/backward_9.png" alt="Endwerte Backward" width="600"/>
 
