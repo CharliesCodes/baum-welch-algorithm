@@ -186,6 +186,80 @@ class HiddenMarkovModel:
         with open(f"{path}/{matrix_name}_{loop}.svg", "w") as text_file:
             text_file.write(svg)
 
+
+    def create_ab_matrix_image(self, matrix_name: str, loop: int):
+        import os
+
+        WIDTH = 1280
+        HEIGHT = 800
+
+        HEIGHT_PARTS = len(self.STATES)
+        if matrix_name == "a_matrix":
+            WIDTH_PARTS = len(self.STATES)
+            SYMBOLS = self.STATES
+            matrix = self.a_matrix
+        elif matrix_name == "b_matrix":
+            WIDTH_PARTS = len(self.SYMBOLS)
+            SYMBOLS = self.SYMBOLS
+            matrix = self.b_matrix.to_numpy()
+
+        PART_HEIGHT = HEIGHT / HEIGHT_PARTS
+        PART_WIDTH = WIDTH / WIDTH_PARTS
+
+        SMALER = min(PART_HEIGHT, PART_WIDTH)
+        CIRCLE_RADIUS = SMALER/4
+
+
+        x_coords = tuple(round(x, 1)
+                        for x in np.linspace(start=PART_WIDTH/2, stop=WIDTH-PART_WIDTH/2, num=WIDTH_PARTS))
+
+        y_coords = tuple(round(y, 1)
+                        for y in np.linspace(start=PART_HEIGHT/2, stop=HEIGHT-PART_HEIGHT/2, num=HEIGHT_PARTS))
+
+        coords = list(itertools.product(x_coords, y_coords))
+
+        circles = list(
+            f'  <circle cx = "{x}" cy = "{y}" r = "{CIRCLE_RADIUS}" stroke = "black" stroke-width = "3" fill="none"/>' for (x, y) in coords)
+
+        output_text = tuple(
+            f'  <text x="{x}" y="20" font-size="2em" text-anchor="middle" alignment-baseline="central">{symbol}</text>' for symbol, x in zip(SYMBOLS, x_coords))
+
+
+        df_values = tuple(matrix.T.flatten())
+
+        texts = tuple(f"""<text text-anchor="middle" alignment-baseline="central">
+        <tspan x = "{x}" dy = "{y}">{round(text,5)}</tspan>
+        </text>
+        """ for text, (x, y) in zip(df_values, coords))
+
+        circle_colors = [(int(255-round(255*x, 0)), int(round(255*x, 0)), 0) for x in df_values]
+
+        for index, (color, circle) in enumerate(zip(circle_colors, circles)):
+            circles[index] = circle.replace('fill="none"', f'fill="rgb{color}"')
+
+        output_text = '\n'.join(output_text)
+        circles = '\n'.join(circles)
+        texts = '\n'.join(texts)
+
+
+        svg = f"""<svg height="{HEIGHT}" width="{WIDTH}">
+
+        {output_text}
+        {circles}
+
+        {texts}
+        </svg>
+        """
+
+        current_dir = os.getcwd()
+        path = f"{current_dir}/images/{matrix_name}"
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        with open(f"{path}/{matrix_name}_{loop}.svg", "w") as text_file:
+            text_file.write(svg)
+
+
     def recalculate_a(self):
         for row_index, row in enumerate(self.a_matrix):
             for column_index, value in enumerate(row):
@@ -247,6 +321,8 @@ class HiddenMarkovModel:
 
             self.recalculate_a()
             self.recalculate_b()
+            hmm.create_ab_matrix_image("a_matrix", loop)
+            hmm.create_ab_matrix_image("b_matrix", loop)
 
             loop += 1
 
